@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LOQ | Personal Assistant Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#1a2123",
+                      "on-primary-fixed-variant": "#004e5f",
+                      "primary-fixed-dim": "#3cd7ff",
+                      "error": "#ffb4ab",
+                      "inverse-primary": "#00677e",
+                      "secondary-fixed": "#ffe16d",
+                      "secondary": "#fff9ef",
+                      "on-surface-variant": "#bbc9cf",
+                      "surface-tint": "#3cd7ff",
+                      "on-tertiary-fixed": "#281900",
+                      "on-background": "#dde3e7",
+                      "on-secondary-fixed-variant": "#544600",
+                      "tertiary-fixed-dim": "#ffba3d",
+                      "surface-dim": "#0e1417",
+                      "on-secondary-container": "#725f00",
+                      "secondary-container": "#ffdb3c",
+                      "on-error-container": "#ffdad6",
+                      "on-error": "#690005",
+                      "tertiary-container": "#feb528",
+                      "outline": "#859398",
+                      "surface-container-highest": "#2f3639",
+                      "surface-container-low": "#161d1f",
+                      "outline-variant": "#3c494e",
+                      "inverse-on-surface": "#2b3134",
+                      "text-soft-white": "#E1E1E1",
+                      "on-primary": "#003642",
+                      "error-container": "#93000a",
+                      "on-surface": "#dde3e7",
+                      "on-secondary-fixed": "#221b00",
+                      "primary-container": "#00d4ff",
+                      "inverse-surface": "#dde3e7",
+                      "on-tertiary-fixed-variant": "#604100",
+                      "on-tertiary-container": "#6c4900",
+                      "background": "#0e1417",
+                      "surface-variant": "#2f3639",
+                      "tertiary": "#ffd9a1",
+                      "primary-fixed": "#b4ebff",
+                      "on-tertiary": "#432c00",
+                      "surface": "#0e1417",
+                      "secondary-fixed-dim": "#e9c400",
+                      "primary": "#a8e8ff",
+                      "on-secondary": "#3a3000",
+                      "surface-container-lowest": "#080f12",
+                      "on-primary-fixed": "#001f27",
+                      "status-error": "#E74C3C",
+                      "surface-bright": "#333a3d",
+                      "background-matte": "#1A1A1B",
+                      "on-primary-container": "#00586b",
+                      "tertiary-fixed": "#ffdeae",
+                      "surface-container-high": "#242b2e",
+                      "status-success": "#2ECC71"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-padding": "24px",
+                      "element-gap": "16px",
+                      "sidebar-width": "280px",
+                      "header-height": "80px",
+                      "footer-height": "64px"
+              },
+              "fontFamily": {
+                      "label-mono": ["JetBrains Mono"],
+                      "headline-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "label-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "label-mono": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glowing-ring {
+            box-shadow: 0 0 15px rgba(60, 215, 255, 0.6);
+        }
+        .visualizer-wave {
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3cd7ff;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden selection:bg-primary-fixed-dim selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface border-b border-outline-variant/30 flex justify-between items-center px-container-padding h-header-height">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="radio_button_checked">radio_button_checked</span>
+<h1 class="font-headline-lg text-headline-lg tracking-widest text-primary-fixed-dim drop-shadow-[0_0_8px_rgba(60,215,255,0.6)]">LOQ</h1>
+</div>
+<!-- Status Indicator (The Orb) -->
+<div class="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+<div class="w-10 h-10 rounded-full border-2 border-primary-fixed-dim glowing-ring flex items-center justify-center bg-primary-fixed-dim/10 relative">
+<div class="w-4 h-4 bg-primary-fixed-dim rounded-full shadow-[0_0_12px_#3cd7ff]"></div>
+<!-- Pulsing Effect Emulated with nested div -->
+<div class="absolute inset-0 rounded-full border border-primary-fixed-dim opacity-40"></div>
+</div>
+<span class="font-label-mono text-label-mono text-primary-fixed-dim mt-2 tracking-tighter">LISTENING</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors duration-300 transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors duration-300 transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex h-screen pt-header-height pb-footer-height">
+<!-- Main Canvas -->
+<main class="flex-1 flex flex-col overflow-hidden px-container-padding py-8 gap-element-gap">
+<!-- Visualizer Section (Top Half) -->
+<section class="flex-1 min-h-[250px] bg-surface-container-lowest rounded-xl border border-outline-variant/20 relative overflow-hidden flex items-center justify-center">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary-fixed-dim/10 via-transparent to-transparent"></div>
+<!-- AI Visualizer Waveform Mockup -->
+<div class="visualizer-wave flex items-end justify-center gap-1.5 h-32 w-full px-12">
+<div class="w-1 bg-primary-fixed-dim h-12 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-20 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-28 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-16 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-32 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-24 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-10 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-28 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-32 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-16 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-20 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+<div class="w-1 bg-primary-fixed-dim h-12 rounded-full shadow-[0_0_10px_#3cd7ff]"></div>
+</div>
+<div class="absolute bottom-4 left-4">
+<span class="font-label-mono text-label-sm text-primary-fixed-dim/60">SPECTRAL ANALYSIS ACTIVE</span>
+</div>
+</section>
+<!-- Command History Log (Bottom Half) -->
+<section class="flex-1 bg-surface-container-low rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
+<div class="px-4 py-3 border-b border-outline-variant/30 bg-surface-container-high flex justify-between items-center">
+<h3 class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Session Log</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="analytics">analytics</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 font-label-mono text-label-mono custom-scrollbar space-y-3">
+<div class="flex gap-4">
+<span class="text-on-surface-variant/40 shrink-0">[10:42:15]</span>
+<p class="text-on-surface"><span class="text-primary-fixed-dim">USER:</span> "Analyze current hardware thermal state."</p>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant/40 shrink-0">[10:42:16]</span>
+<p class="text-on-surface-variant"><span class="text-secondary-fixed">LOQ:</span> <span class="text-primary-fixed-dim">"System temperatures within nominal range. CPU: 42°C. Cooling optimized."</span></p>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant/40 shrink-0">[10:44:02]</span>
+<p class="text-on-surface"><span class="text-primary-fixed-dim">USER:</span> "Initiate voice calibration for model V2."</p>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant/40 shrink-0">[10:44:03]</span>
+<p class="text-on-surface-variant"><span class="text-secondary-fixed">LOQ:</span> <span class="text-primary-fixed-dim">"Awaiting vocal input. Frequency detection active."</span></p>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant/40 shrink-0">[10:45:10]</span>
+<p class="text-on-surface"><span class="text-primary-fixed-dim">USER:</span> "Update security protocols to Level 4."</p>
+</div>
+</div>
+</section>
+</main>
+<!-- SideNavBar (Utility Panel) -->
+<aside class="w-sidebar-width bg-surface-container-low border-l border-outline-variant/30 flex flex-col py-8 overflow-y-auto custom-scrollbar">
+<!-- Header Avatar/Orb -->
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-surface-container-highest border border-outline-variant rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="person_search">person_search</span>
+</div>
+<div>
+<h2 class="font-label-mono text-label-mono text-primary uppercase">SYSTEM CORE</h2>
+<p class="font-label-mono text-label-sm text-on-surface-variant">V 2.0.4 - ACTIVE</p>
+</div>
+</div>
+<button class="w-full py-2 bg-primary-container text-on-primary-container rounded font-label-mono text-label-sm tracking-widest hover:brightness-110 transition-all active:scale-95">
+                    RECALIBRATE
+                </button>
+</div>
+<!-- Settings Sections -->
+<nav class="space-y-6">
+<div class="px-6 space-y-4">
+<h4 class="text-on-surface-variant font-label-mono text-label-sm uppercase opacity-60">Personalization</h4>
+<div class="space-y-3">
+<div class="space-y-1">
+<label class="font-label-mono text-label-sm text-on-surface-variant">Model Identity</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded px-3 py-1.5 text-label-mono text-primary-fixed-dim focus:border-primary-fixed-dim focus:ring-0 outline-none" type="text" value="LOQ-Beta"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-mono text-label-sm text-on-surface-variant">Voice Profile</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded px-3 py-1.5 text-label-mono text-on-surface focus:border-primary-fixed-dim focus:ring-0 outline-none appearance-none">
+<option>Aether (Default)</option>
+<option>Nova (High Contrast)</option>
+<option>Obsidian (Deep Mono)</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Navigation items from JSON -->
+<div class="border-y border-outline-variant/20 py-4">
+<div class="flex items-center gap-4 py-2 px-6 border-r-2 border-primary bg-surface-container-highest/30">
+<span class="material-symbols-outlined text-primary" data-icon="settings_voice">settings_voice</span>
+<span class="font-label-mono text-label-mono text-primary">Voice Control</span>
+</div>
+<div class="flex items-center gap-4 py-2 px-6 hover:bg-surface-container-highest/20 cursor-pointer transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-mono text-label-mono">System Analytics</span>
+</div>
+<div class="flex items-center gap-4 py-2 px-6 hover:bg-surface-container-highest/20 cursor-pointer transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+<span class="font-label-mono text-label-mono">Security Layer</span>
+</div>
+</div>
+<!-- Metrics -->
+<div class="px-6 space-y-4 pt-2">
+<h4 class="text-on-surface-variant font-label-mono text-label-sm uppercase opacity-60">Live Telemetry</h4>
+<div class="space-y-4">
+<div class="space-y-2">
+<div class="flex justify-between font-label-mono text-label-sm">
+<span>CPU LOAD</span>
+<span class="text-primary-fixed-dim">24%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed-dim shadow-[0_0_8px_#3cd7ff]" style="width: 24%;"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-mono text-label-sm">
+<span>MEMORY</span>
+<span class="text-primary-fixed-dim">4.2 GB</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed-dim shadow-[0_0_8px_#3cd7ff]" style="width: 62%;"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-mono text-label-sm">
+<span>BATTERY</span>
+<span class="text-status-success">OPTIMAL</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-status-success shadow-[0_0_8px_#2ECC71]" style="width: 88%;"></div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+</aside>
+</div>
+<!-- Footer Control Bar -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-high border-t border-outline-variant/30 h-footer-height flex justify-between items-center px-container-padding">
+<div class="flex items-center gap-4">
+<span class="font-label-mono text-label-mono text-primary uppercase tracking-widest">00:45:12 ACTIVE SESSION</span>
+</div>
+<div class="flex gap-4">
+<!-- Start Button -->
+<button class="flex items-center gap-2 text-status-success font-bold border border-status-success rounded-lg px-6 py-1.5 shadow-[0_0_10px_rgba(46,204,113,0.3)] hover:brightness-125 hover:shadow-[0_0_15px_rgba(46,204,113,0.5)] transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span class="font-label-mono text-label-mono">START</span>
+</button>
+<!-- Stop Button -->
+<button class="flex items-center gap-2 text-on-surface-variant border border-outline-variant rounded-lg px-6 py-1.5 hover:text-error hover:border-error hover:shadow-[0_0_15px_rgba(231,76,60,0.4)] transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="stop" style="font-variation-settings: 'FILL' 1;">stop</span>
+<span class="font-label-mono text-label-mono">STOP</span>
+</button>
+<!-- Restart Button -->
+<button class="flex items-center gap-2 text-on-surface-variant border border-outline-variant rounded-lg px-6 py-1.5 hover:text-primary-fixed-dim hover:border-primary-fixed-dim hover:shadow-[0_0_15px_rgba(60,215,255,0.4)] transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span>
+<span class="font-label-mono text-label-mono">RESTART</span>
+</button>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant/40">
+<span class="font-label-mono text-label-sm uppercase">Secure Link</span>
+<span class="material-symbols-outlined text-sm" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+</footer>
+</body></html>
