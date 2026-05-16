@@ -1,3 +1,5 @@
 SpeechRecognition
 vosk
 Pyttsx3
+PyAudio
+elevenlabs

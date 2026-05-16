@@ -1,11 +1,6 @@
 import speech_recognition as sr
 import pyaudio
-import os
 import sys
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-from utils.logger import logging as log
 
 def test_microphone_indices():
     p = pyaudio.PyAudio()
@@ -25,7 +20,6 @@ def run_stt():
     
     if not indices:
         print("No input devices found at all.")
-        log.warning("No input device found")
         return
 
     # Try default first, then others
@@ -33,12 +27,10 @@ def run_stt():
         print("\nAttempting to use default microphone...")
         with sr.Microphone() as source:
             print("Default mic works!")
-            log.info("Mic is working")
             process_audio(r, source)
             return
     except Exception as e:
         print(f"Default mic failed: {e}")
-        log.error(f"Default mic failed: {e}")
 
     for index in indices:
         try:
@@ -49,7 +41,6 @@ def run_stt():
                 return
         except Exception as e:
             print(f"Index {index} failed: {e}")
-            log.error(f"index {index} failed: {e}")
 
 def process_audio(recognizer, source):
     print("Adjusting for noise... (speak into mic)")
@@ -60,15 +51,12 @@ def process_audio(recognizer, source):
         print("Recognizing...")
         text = recognizer.recognize_google(audio)
         print(f"Result: {text}")
-        log.info(f"Audio successfully recognized as {text}")
     except sr.WaitTimeoutError:
         print("No speech detected.")
-        log.error("No speech detected")
     except sr.UnknownValueError:
         print("Could not understand audio.")
-        log.error("could not understand audio")
     except sr.RequestError as e:
         print(f"Service error: {e}")
-        log.error(f"{e}")
+
 if __name__ == "__main__":
     run_stt()

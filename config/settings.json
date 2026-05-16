@@ -1,0 +1,14 @@
+{
+    "assistant name":[
+        "LOQ",
+        "JARVIS",
+        "OPTIMUS",
+        "HERCULES"
+    ],
+    "Voice Model":[
+        {"Brian":"nPczCjzI2devNBz1zQrb"},
+        {"Lily" : "pFZP5JQG7iQjIQuC4Bku"},
+        {"Mark" : "UgBBYS2sOqTuMpoF3BR0"},
+        {"Jessica" : "cgSgspJ2msm6clMCkdW9"}
+    ]
+}
