@@ -1,0 +1,132 @@
+{
+  "shutdown pc": "shutdown /s /t 1",
+  "restart pc": "shutdown /r /t 1",
+  "sleep pc": "rundll32.exe powrprof.dll,SetSuspendState 0,1,0",
+  "hibernate pc": "shutdown /h",
+  "lock pc": "rundll32.exe user32.dll,LockWorkStation",
+  "sign out": "shutdown /l",
+  "cancel shutdown": "shutdown /a",
+
+  "open chrome": "start chrome",
+  "open edge": "start msedge",
+  "open firefox": "start firefox",
+  "open brave": "start brave",
+
+  "open notepad": "notepad",
+  "open calculator": "calc",
+  "open paint": "mspaint",
+  "open command prompt": "start cmd",
+  "open powershell": "start powershell",
+  "open terminal": "start wt",
+  "open vscode": "code",
+  "open task manager": "taskmgr",
+  "open control panel": "control",
+  "open settings": "start ms-settings:",
+  "open file explorer": "explorer",
+  "open downloads": "explorer shell:Downloads",
+  "open desktop": "explorer shell:Desktop",
+  "open documents": "explorer shell:Documents",
+  "open recycle bin": "explorer shell:RecycleBinFolder",
+
+  "open youtube": "start https://youtube.com",
+  "open google": "start https://google.com",
+  "open github": "start https://github.com",
+  "open linkedin": "start https://linkedin.com",
+  "open chatgpt": "start https://chat.openai.com",
+  "open gmail": "start https://mail.google.com",
+  "open netflix": "start https://netflix.com",
+  "open spotify": "start spotify",
+
+  "volume up": "nircmd changesysvolume 5000",
+  "volume down": "nircmd changesysvolume -5000",
+  "mute volume": "nircmd mutesysvolume 1",
+  "unmute volume": "nircmd mutesysvolume 0",
+
+  "wifi on": "netsh interface set interface \"Wi-Fi\" enabled",
+  "wifi off": "netsh interface set interface \"Wi-Fi\" disabled",
+  "bluetooth settings": "start ms-settings:bluetooth",
+
+  "check ip address": "ipconfig",
+  "check internet connection": "ping google.com",
+  "flush dns": "ipconfig /flushdns",
+
+  "clear temp files": "del /q/f/s %TEMP%\\*",
+  "empty recycle bin": "PowerShell.exe -NoProfile -Command Clear-RecycleBin -Force",
+
+  "take screenshot": "snippingtool",
+  "open camera": "start microsoft.windows.camera:",
+  "open photos": "start ms-photos:",
+
+  "open whatsapp": "start whatsapp",
+  "open discord": "start discord",
+  "open telegram": "start telegram",
+
+  "check battery": "powercfg /batteryreport",
+  "system information": "msinfo32",
+  "check disk": "chkdsk",
+  "task list": "tasklist",
+
+  "minimize all windows": "powershell -command \"(new-object -com shell.application).minimizeall()\"",
+  "show desktop": "powershell -command \"(new-object -com shell.application).minimizeall()\"",
+
+  "open environment variables": "SystemPropertiesAdvanced",
+  "open device manager": "devmgmt.msc",
+  "open disk management": "diskmgmt.msc",
+  "open registry editor": "regedit",
+  "open services": "services.msc",
+
+  "open startup folder": "shell:startup",
+  "open run dialog": "explorer shell:::2559a1f3-21d7-11d4-bdaf-00c04f60b9f0",
+
+  "update windows": "start ms-settings:windowsupdate",
+  "windows security": "start windowsdefender:",
+
+  "open snipping tool": "snippingtool",
+  "open magnifier": "magnify",
+  "open narrator": "narrator",
+
+  "open calculator scientific": "calc",
+  "open wordpad": "write",
+  "open remote desktop": "mstsc",
+  "open character map": "charmap",
+
+  "shutdown after 1 minute": "shutdown /s /t 60",
+  "restart after 1 minute": "shutdown /r /t 60",
+
+  "open python": "python",
+  "open git bash": "start git-bash",
+  "open docker desktop": "start docker desktop",
+  "open xampp": "start xampp-control",
+
+  "open browser history": "start chrome://history",
+  "open browser downloads": "start chrome://downloads",
+
+  "check network adapters": "ncpa.cpl",
+  "open sound settings": "mmsys.cpl",
+  "open display settings": "start ms-settings:display",
+  "open personalization settings": "start ms-settings:personalization",
+
+  "open keyboard settings": "start ms-settings:keyboard",
+  "open mouse settings": "start ms-settings:mousetouchpad",
+
+  "open date and time settings": "timedate.cpl",
+  "sync time": "w32tm /resync",
+
+  "turn on dark mode": "start ms-settings:colors",
+  "turn on airplane mode": "start ms-settings:network-airplanemode",
+
+  "open task scheduler": "taskschd.msc",
+  "open event viewer": "eventvwr",
+  "open performance monitor": "perfmon",
+
+  "open resource monitor": "resmon",
+  "open directx diagnostics": "dxdiag",
+
+  "scan system files": "sfc /scannow",
+  "repair windows image": "DISM /Online /Cleanup-Image /RestoreHealth",
+
+  "open windows terminal": "wt",
+  "open powershell as admin": "powershell Start-Process powershell -Verb runAs",
+
+  "open cmd as admin": "powershell Start-Process cmd -Verb runAs"
+}
