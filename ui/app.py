@@ -10,7 +10,15 @@ import time
 import math
 import threading
 import tkinter as tk
+from tkinter import messagebox
 import customtkinter as ctk
+
+# Add project root to sys.path to ensure absolute imports work correctly
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from core.speech_to_speech import SpeechToSpeechSystem
 
 # Fallback for CPU/RAM status monitoring if psutil isn't in virtualenv
 try:
@@ -171,6 +179,9 @@ class PersonalAssistantApp(ctk.CTk):
         self.create_sidebar()
         self.create_main_panel()
         self.create_footer()
+        
+        # 3. Core Voice Assistant Engine
+        self.assistant = SpeechToSpeechSystem(tts_method="gtts", voice_name="Jessica")
         
         # 3. Start Telemetry and Timers
         self.update_telemetry()
@@ -462,32 +473,113 @@ class PersonalAssistantApp(ctk.CTk):
             
         self.status_label.configure(text=status_msg, text_color=status_color)
 
-    # ----------------- Button Callbacks (Phase 1 Mock Actions) -----------------
+    # ----------------- Button Callbacks (Phase 2 Operational Logic) -----------------
+
+    def confirm_critical_command(self, matched_key):
+        """Displays a secure Yes/No GUI messagebox for critical operations in CustomTkinter."""
+        approved = messagebox.askyesno(
+            "LOQ Security Alert",
+            f"Warning: You are attempting to trigger a critical system action: '{matched_key}'.\n\nDo you want to authorize this operation?"
+        )
+        return approved
+
+    def trigger_listening_cycle(self):
+        """Runs a Speech-to-Speech loop asynchronously, fetching live dropdown voice configs."""
+        if not self.session_active or self.assistant_state == "Stopped":
+            return
+            
+        self.change_ui_state("Listening", "SYSTEM STATUS: LISTENING...", "#00D4FF")
+        
+        # Read the currently selected voice dynamically from the UI option menu
+        voice_selection = self.voice_dropdown.get()
+        
+        # Parse selected engine configurations
+        tts_method = "pyttsx3"
+        voice_name = "Jessica"
+        
+        if "gTTS" in voice_selection:
+            tts_method = "gtts"
+        elif "ElevenLabs" in voice_selection:
+            tts_method = "elevenlabs"
+            if "Lily" in voice_selection:
+                voice_name = "Lily"
+            else:
+                voice_name = "Brian"
+        else:
+            tts_method = "pyttsx3"
+            voice_name = "Mark"
+            
+        # Dispatch to background daemon thread to keep CustomTkinter completely fluid
+        self.assistant.run_cycle_async(
+            callback=self.on_cycle_finished,
+            confirmation_callback=self.confirm_critical_command,
+            tts_method=tts_method,
+            voice_name=voice_name
+        )
+
+    def on_cycle_finished(self, results):
+        """Processes the Speech-to-Speech results back on the GUI main thread."""
+        if not self.session_active or self.assistant_state == "Stopped":
+            return
+            
+        user_text = results.get("user_text")
+        response = results.get("response")
+        command_executed = results.get("command_executed")
+        
+        # Fetch current assistant name dynamically from user setting
+        current_name = self.name_entry.get().strip() or "LOQ"
+        
+        if user_text:
+            self.append_log("User", f'"{user_text}"')
+            
+        if response:
+            self.append_log(current_name, f'"{response}"')
+            
+        if command_executed:
+            self.append_log("System", f"Command executed successfully: '{command_executed}'.")
+            
+        # Shift status indicator to gold (Processing/Done) and then smoothly back to Green (Ready/Idle)
+        self.change_ui_state("Processing", "SYSTEM STATUS: DONE", "#FFD700")
+        
+        def reset_to_idle():
+            if self.session_active and self.assistant_state != "Stopped":
+                self.change_ui_state("Idle", "SYSTEM STATUS: READY", "#2ECC71")
+                # Recursively schedule the next listening block after a short 1.2-second wait (continuous voice loop!)
+                self.after(1200, self.trigger_listening_cycle)
+                
+        self.after(800, reset_to_idle)
 
     def start_action(self):
-        """Starts the assistant session and kicks off the timer and pulsing wave effects."""
+        """Activates the continuous, hands-free voice command execution loop."""
         if not self.session_active:
             self.session_active = True
             self.start_time = time.time()
             self.append_log("System", "Assistant session started.")
             
+        # Clear stopped state and trigger first listening cycle
         self.change_ui_state("Listening", "SYSTEM STATUS: LISTENING...", "#00D4FF")
-        self.append_log("LOQ", "Microphone active. Listening for system commands...")
+        self.append_log("System", "Microphone listening active...")
         
-        # Visual glowing hover state feedback
+        # Style active start button
         self.start_btn.configure(fg_color="#00D4FF", text_color="#001F27")
+        
+        # Trigger the first cycle
+        self.trigger_listening_cycle()
 
     def stop_action(self):
-        """Pauses the voice loop and shifts indicators to stationary red state."""
+        """Instantly halts the active voice loop and cancels speech output."""
+        self.session_active = False
         self.change_ui_state("Stopped", "SYSTEM STATUS: STOPPED", "#E74C3C")
-        self.append_log("LOQ", "Voice interaction paused. Standby.")
+        self.append_log("System", "Voice loop paused. Standby.")
+        
+        # Instantly interrupt any active audio stream
+        self.assistant.stop()
         
         # Reset button styles
         self.start_btn.configure(fg_color="#00586B", text_color="#A8E8FF")
 
     def restart_action(self):
-        """Resets the history console log and resets elapsed session time."""
-        # Reset timer
+        """Resets console history, active session timers, and shuts down current loops."""
         self.session_active = False
         self.elapsed_time_secs = 0
         self.timer_label.configure(text="SESSION TIME: 00:00:00")
@@ -497,9 +589,12 @@ class PersonalAssistantApp(ctk.CTk):
         self.console_textbox.delete("1.0", "end")
         self.console_textbox.configure(state="disabled")
         
+        # Interrupt voice
+        self.assistant.stop()
+        
+        # Shift back to Ready
         self.change_ui_state("Idle", "SYSTEM STATUS: READY", "#2ECC71")
-        self.append_log("LOQ", "System logs successfully cleared.")
-        self.append_log("System", "Standby Mode active. Click Start to initialize the loop.")
+        self.append_log("System", "Logs cleared. Assistant reset to Standby Ready.")
         
         # Reset buttons styles
         self.start_btn.configure(fg_color="#00586B", text_color="#A8E8FF")
