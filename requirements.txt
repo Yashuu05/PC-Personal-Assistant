@@ -5,3 +5,4 @@ PyAudio
 gtts
 elevenlabs
 python-dotenv
+customtkinter
