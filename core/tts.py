@@ -96,6 +96,9 @@ def speak_gtts(text, lang='en', output_file='temp_gtts.mp3'):
         from gtts import gTTS
         log.info(f"Generating gTTS speech for: '{text}'")
         
+        # Stop and close previous playback to release the Windows MCI file lock
+        stop_audio_windows()
+        
         # Generate the audio file
         tts = gTTS(text=text, lang=lang)
         tts.save(output_file)
@@ -129,6 +132,9 @@ def speak_elevenlabs(text, voice_id=None, model_id="eleven_multilingual_v2", out
             voice_id = "cgSgspJ2msm6clMCkdW9" # Default voice ID
             
         log.info(f"Generating ElevenLabs premium speech for: '{text}' using voice ID: {voice_id}")
+        
+        # Stop and close previous playback to release the Windows MCI file lock
+        stop_audio_windows()
         
         # Request speech conversion
         audio_generator = client.text_to_speech.convert(

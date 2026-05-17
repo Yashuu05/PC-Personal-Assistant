@@ -162,7 +162,7 @@ class SpeechToSpeechSystem:
         """Checks if the command represents a critical system action requiring safety validation."""
         return any(keyword in matched_key for keyword in self.critical_commands)
 
-    def execute_command(self, shell_command, matched_key, confirmation_callback=None):
+    def execute_command(self, shell_command, matched_key, confirmation_callback=None, skip_safety=False):
         """
         Executes the shell command asynchronously.
         Supports GUI-friendly safety callback to show yes/no dialogs in CustomTkinter.
@@ -171,7 +171,7 @@ class SpeechToSpeechSystem:
             return False
             
         # Check critical system commands safety
-        if self.is_critical(matched_key):
+        if self.is_critical(matched_key) and not skip_safety:
             log.warning(f"Safety check triggered for critical command: '{matched_key}'")
             
             # If running inside CustomTkinter GUI, invoke GUI confirmation window

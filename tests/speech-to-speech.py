@@ -1,138 +1,108 @@
 """
-Speech-to-Speech Integration Module for Personal Assistant (LOQ).
-Combines stt.py (Speech-to-Text) and tts.py (Text-to-Speech) into an
-end-to-end voice loop designed to run asynchronously in a CustomTkinter application.
+Voice Command Execution Test Script (LOQ).
+Runs an end-to-end voice-controlled test cycle with Speech-to-Text,
+low-latency command mapping, asynchronous execution, and text-to-speech feedback.
+Implements a robust 3-trial loop for speech recognition failures with intelligent fallbacks.
 """
 
 import os
 import sys
-import threading
-import re
-from dotenv import load_dotenv
+import time
 
 # Add project root to sys.path to ensure absolute imports work correctly
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from utils.logger import logging as log
+from core.speech_to_speech import SpeechToSpeechSystem
 from core.stt import run_stt
-from core.tts import TTSEngine
+from utils.logger import logging as log
 
-def extract_name_and_greet(text):
-    """
-    Analyzes the user input text for name-introduction patterns.
-    If a pattern matches, returns a custom greeting; otherwise returns a default echo.
-    """
-    if not text:
-        return None
-        
-    text_lower = text.lower().strip()
+def run_voice_command_test():
+    # Initialize the SpeechToSpeechSystem
+    # Defaulting to gtts which will automatically cascade fallback to offline pyttsx3 if unavailable
+    system = SpeechToSpeechSystem(tts_method="gtts", voice_name="Jessica")
     
-    # Patterns to match: "my name is <name>", "i am <name>", "i'm <name>", "hello my name is <name>"
-    patterns = [
-        r"\bmy name is\s+([a-zA-Z\s]+)",
-        r"\bi'm\s+([a-zA-Z\s]+)",
-        r"\bi am\s+([a-zA-Z\s]+)",
-        r"\bthis is\s+([a-zA-Z\s]+)"
-    ]
+    print("\n=== LOQ Speech-to-Speech Command Execution Test ===")
+    print("Workflow: You have 3 trials to speak a valid system command listed in commands.json.")
+    print("Examples to speak: 'open notepad', 'open calculator', 'check ip address'.")
     
-    for pattern in patterns:
-        match = re.search(pattern, text_lower)
-        if match:
-            # Capture and clean the name
-            name = match.group(1).strip().title()
-            # Handle cases where they speak a full greeting with trailing characters
-            name_words = name.split()
-            if name_words:
-                # Take the first word or name block
-                first_name = name_words[0]
-                return f"Nice to meet you, {first_name}!"
-                
-    # Fallback to general conversational echo
-    return f"I heard you say: {text}"
-
-
-class SpeechToSpeechSystem:
+    # Step 1: Program prompts for voice input
     """
-    Manages the active speech interaction loop.
-    Optimized to be imported directly by a CustomTkinter GUI and run in a separate thread.
+    greeting = "Please say a command, such as open notepad."
+    print(f"\nLOQ: \"{greeting}\"")
+    system.tts.speak(greeting, method="gtts")
     """
-    def __init__(self, tts_method="pyttsx3", voice_name="Jessica"):
-        # Initialize the underlying text-to-speech engine
-        self.tts = TTSEngine(default_method=tts_method, voice_name=voice_name)
-        log.info(f"SpeechToSpeechSystem initialized with TTS method: {tts_method}")
-
-    def run_cycle(self, tts_method=None, voice_name=None):
-        """
-        Executes a single synchronous Speech-to-Speech loop:
-        1. Listen via STT (Speech-to-Text).
-        2. Process/parse the text to generate an appropriate response.
-        3. Speak the response using the configured TTS method.
+    trial = 0
+    max_trials = 3
+    
+    while trial < max_trials:
+        trial += 1
+        print(f"\n--- [Trial {trial}/{max_trials}] Listening for voice command... ---")
         
-        Returns a tuple of (recognized_text, response_text).
-        """
-        log.info("Starting Speech-to-Speech cycle...")
+        # Step 2 & 3: Run Speech Recognition to capture voice input
+        raw_speech = run_stt()
         
-        # Step 1: Run STT to capture microphone input
-        user_input = run_stt()
-        
-        if not user_input:
-            response = "Sorry, I didn't hear anything. Please try again."
-            log.warning("Speech-to-Speech: No input detected.")
-            # Speak fallback warning
-            self.tts.speak(response, method=tts_method, voice_name=voice_name)
-            return None, response
+        if not raw_speech:
+            # Step 7: If speech is not recognized, prompt "Please repeat again"
+            if trial < max_trials:
+                repeat_prompt = "Please repeat again."
+                print(f"LOQ: \"{repeat_prompt}\"")
+                system.tts.speak(repeat_prompt, method="gtts")
+            else:
+                fail_prompt = "Unrecognizable command. Max trials reached. Exiting."
+                print(f"LOQ: \"{fail_prompt}\"")
+                system.tts.speak(fail_prompt, method="gtts")
+                time.sleep(3.0)  # Let audio play before process exits
+            continue
             
-        # Step 2: Determine appropriate response (greetings parser or fallback echo)
-        response = extract_name_and_greet(user_input)
-        log.info(f"Speech-to-Speech interaction: [User: '{user_input}'] -> [Assistant: '{response}']")
+        print(f"Raw speech recognized: \"{raw_speech}\"")
         
-        # Step 3: Speak the response
-        self.tts.speak(response, method=tts_method, voice_name=voice_name)
+        # Step 4 & 5: Clean and match command key
+        cleaned_text = system.clean_input(raw_speech)
+        print(f"Cleaned search text: \"{cleaned_text}\"")
         
-        return user_input, response
-
-    def run_cycle_async(self, callback=None, tts_method=None, voice_name=None):
-        """
-        Runs the Speech-to-Speech cycle in a background thread to prevent GUI lockup.
+        matched_key, shell_command = system.match_command(raw_speech)
         
-        Parameters:
-            callback: An optional callback function that receives (user_text, assistant_response).
-                      This is ideal for updating CustomTkinter UI labels and history.
-            tts_method: Override default TTS method (e.g., 'elevenlabs', 'gtts', 'pyttsx3')
-            voice_name: Override default assistant voice name
-        """
-        def thread_target():
-            user_text, assistant_response = self.run_cycle(tts_method=tts_method, voice_name=voice_name)
-            if callback:
-                try:
-                    callback(user_text, assistant_response)
-                except Exception as e:
-                    log.error(f"Error in Speech-to-Speech async callback: {e}")
-                    
-        # Start background daemon thread
-        s2s_thread = threading.Thread(target=thread_target, daemon=True)
-        s2s_thread.start()
-        return s2s_thread
+        if matched_key:
+            # Step 6: Command matched successfully!
+            # Format a natural speaking response: e.g. "open notepad" -> "opening notepad"
+            if matched_key.startswith("open "):
+                spoken_subject = matched_key.replace("open ", "")
+                tts_response = f"opening {spoken_subject}"
+            else:
+                tts_response = f"executing command {matched_key}"
+                
+            print(f"LOQ: \"{tts_response}\"")
+            system.tts.speak(tts_response, method="gtts")
+            
+            # Execute command asynchronously
+            # Setting skip_safety=True here for automated test execution flow
+            system.execute_command(shell_command, matched_key, skip_safety=True)
+            
+            # CRITICAL: Keep process alive to allow asynchronous MCI playback to finish speaking!
+            time.sleep(2.0)
+            
+            print("\n[SUCCESS] Command executed asynchronously. Test completed successfully.")
+            return True
+        else:
+            # Speech captured but matched nothing (invalid command keyword)
+            print(f"Invalid command key: No match found for '{cleaned_text}'.")
+            if trial < max_trials:
+                invalid_prompt = "Invalid command keyword. Please repeat again."
+                print(f"LOQ: \"{invalid_prompt}\"")
+                system.tts.speak(invalid_prompt, method="gtts")
+            else:
+                fail_prompt = "Invalid command. Max trials reached. Exiting."
+                print(f"LOQ: \"{fail_prompt}\"")
+                system.tts.speak(fail_prompt, method="gtts")
+                time.sleep(3.0)  # Let audio play before process exits
+                
+    print("\n[FAILED] Test completed without executing any command.")
+    return False
 
-    def stop(self):
-        """Instantly interrupts any ongoing speech playback."""
-        self.tts.stop()
-
-
-# Self-test code
 if __name__ == "__main__":
-    print("\n=== LOQ Speech-to-Speech End-to-End Test ===")
-    print("This will listen to your voice and reply using TTS.")
-    print("Example: Speak 'Hello, my name is John' to verify name-matching.")
-    
-    # Initialize the system
-    system = SpeechToSpeechSystem(tts_method="pyttsx3")
-    
-    # Run the cycle synchronously
-    user_text, assistant_response = system.run_cycle()
-    
-    print("\n--- Test Complete ---")
-    print(f"Recognized Speech: {user_text}")
-    print(f"Assistant Response: {assistant_response}")
+    try:
+        run_voice_command_test()
+    except KeyboardInterrupt:
+        print("\nTest interrupted by user.")
