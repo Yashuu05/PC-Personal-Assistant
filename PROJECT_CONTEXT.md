@@ -18,14 +18,6 @@ to develop the personal assistant for Windows PCs or laptops which are capable o
 - Available voice models from ElevenLabs: 
 
 
-| Name | Voice ID |
-| :---- | :---- |
-| Mark | UgBBYS2sOqTuMpoF3BR0 |
-| Jessica | cgSgspJ2msm6clMCkdW9 |
-| Brian | nPczCjzI2devNBz1zQrb |
-| lily | pFZP5JQG7iQjIQuC4Bku |
-
-
 # **Objectives :** 
 
 1. To reduce the minor tasks   
@@ -95,7 +87,7 @@ Personal_Assistant/
 | Voice Input | SpeechRecognition |
 | Offline STT (better) | Vosk |
 | AI/NLP | Ollama or OpenAI API |
-| Text-to-Speech | Pyttsx3 / eleven labs |
+| Text-to-Speech | Pyttsx3 / TTS |
 | GUI | CustomTkinter |
 | OS Automation | os \+ subprocess \+ pyautogui |
 | Wake Word | Porcupine / openWakeWord |

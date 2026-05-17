@@ -2,4 +2,6 @@ SpeechRecognition
 vosk
 Pyttsx3
 PyAudio
+gtts
 elevenlabs
+python-dotenv

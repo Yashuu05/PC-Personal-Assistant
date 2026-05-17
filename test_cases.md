@@ -3,7 +3,7 @@
 ----------------------------------------------------------
 |   1.   |  Voice Recognition (TTS)         |  passed    |
 |   2.   |  Command Execution               |            
-|   3.   |  STT
+|   3.   |  STT                             |  passsed   |
 |   4.   |
 |        |
 |        |

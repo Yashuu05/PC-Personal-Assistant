@@ -26,7 +26,7 @@ def run_stt():
     if not indices:
         print("No input devices found at all.")
         log.warning("No input device found")
-        return
+        return None
 
     # Try default first, then others
     try:
@@ -34,8 +34,7 @@ def run_stt():
         with sr.Microphone() as source:
             print("Default mic works!")
             log.info("Mic is working")
-            process_audio(r, source)
-            return
+            return process_audio(r, source)
     except Exception as e:
         print(f"Default mic failed: {e}")
         log.error(f"Default mic failed: {e}")
@@ -45,11 +44,11 @@ def run_stt():
             print(f"\nAttempting to use device index {index}...")
             with sr.Microphone(device_index=index) as source:
                 print(f"Success with index {index}!")
-                process_audio(r, source)
-                return
+                return process_audio(r, source)
         except Exception as e:
             print(f"Index {index} failed: {e}")
             log.error(f"index {index} failed: {e}")
+    return None
 
 def process_audio(recognizer, source):
     print("Adjusting for noise... (speak into mic)")
@@ -61,6 +60,7 @@ def process_audio(recognizer, source):
         text = recognizer.recognize_google(audio)
         print(f"Result: {text}")
         log.info(f"Audio successfully recognized as {text}")
+        return text
     except sr.WaitTimeoutError:
         print("No speech detected.")
         log.error("No speech detected")
@@ -70,5 +70,7 @@ def process_audio(recognizer, source):
     except sr.RequestError as e:
         print(f"Service error: {e}")
         log.error(f"{e}")
+    return None
+
 if __name__ == "__main__":
-    run_stt()
+    run_stt()
