@@ -205,9 +205,10 @@ class SpeechToSpeechSystem:
         3. Fallback to Name Greeting or Echo.
         4. Synthesize voice response using TTS.
         
-        Returns a dict of results: {"user_text": ..., "response": ..., "command_executed": ...}
+        Returns a dict of results: {"user_text": ..., "response": ..., "command_executed": ..., "latency_ms": ...}
         """
         log.info("Speech-to-Speech cycle started.")
+        cycle_start = time.perf_counter()
         
         # Step 1: Run STT to capture voice input
         user_input = run_stt()
@@ -215,10 +216,12 @@ class SpeechToSpeechSystem:
         if not user_input:
             response = "Sorry, I didn't hear anything. Please try again."
             self.tts.speak(response, method=tts_method, voice_name=voice_name)
+            latency_ms = (time.perf_counter() - cycle_start) * 1000.0
             return {
                 "user_text": None,
                 "response": response,
-                "command_executed": None
+                "command_executed": None,
+                "latency_ms": latency_ms
             }
             
         # Step 2: High-Performance Command Matching
@@ -234,10 +237,12 @@ class SpeechToSpeechSystem:
             # Execute command asynchronously
             self.execute_command(shell_command, matched_key, confirmation_callback)
             
+            latency_ms = (time.perf_counter() - cycle_start) * 1000.0
             return {
                 "user_text": user_input,
                 "response": response,
-                "command_executed": matched_key
+                "command_executed": matched_key,
+                "latency_ms": latency_ms
             }
             
         # Step 3: Conversational fallback (Name matching or Echo)
@@ -250,10 +255,12 @@ class SpeechToSpeechSystem:
         log.info(f"Conversational response: [User: '{user_input}'] -> [Assistant: '{response}']")
         self.tts.speak(response, method=tts_method, voice_name=voice_name)
         
+        latency_ms = (time.perf_counter() - cycle_start) * 1000.0
         return {
             "user_text": user_input,
             "response": response,
-            "command_executed": None
+            "command_executed": None,
+            "latency_ms": latency_ms
         }
 
     def run_cycle_async(self, callback=None, confirmation_callback=None, tts_method=None, voice_name=None):

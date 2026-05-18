@@ -35,6 +35,11 @@
   "open chatgpt": "start https://chat.openai.com",
   "open gmail": "start https://mail.google.com",
   "open netflix": "start https://netflix.com",
+  "open instagram": "start https://instagram.com",
+  "open udemy": "start https://udemy.com",
+  "open canva": "start https://canva.com",
+  "open telegram": "start https://web.telegram.org",
+  "open whatsapp": "start https://web.whatsapp.com/",
   "open spotify": "start spotify",
 
   "volume up": "nircmd changesysvolume 5000",
@@ -56,10 +61,6 @@
   "take screenshot": "snippingtool",
   "open camera": "start microsoft.windows.camera:",
   "open photos": "start ms-photos:",
-
-  "open whatsapp": "start whatsapp",
-  "open discord": "start discord",
-  "open telegram": "start telegram",
 
   "check battery": "powercfg /batteryreport",
   "system information": "msinfo32",

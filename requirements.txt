@@ -6,3 +6,7 @@ gtts
 elevenlabs
 python-dotenv
 customtkinter
+psutil
+pycaw
+pillow
+openwakeword

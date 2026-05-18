@@ -19,7 +19,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from core.speech_to_speech import SpeechToSpeechSystem
-
+from utils.database import AssistantMemory
+from utils.logger import logging as log
 # Fallback for CPU/RAM status monitoring if psutil isn't in virtualenv
 try:
     import psutil
@@ -160,8 +161,15 @@ class PersonalAssistantApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         
+        # Initialize SQLite database
+        self.db = AssistantMemory()
+        
+        # Load saved personalization configurations from database
+        self.assistant_name = self.db.get_setting("assistant_name", "LOQ")
+        self.active_voice = self.db.get_setting("active_voice", "Jessica (gTTS)")
+        
         # 1. Main Window Settings
-        self.title("LOQ - Futuristic Personal Assistant")
+        self.title(f"{self.assistant_name} - Futuristic Personal Assistant")
         self.geometry("850x650")
         self.configure(fg_color="#0e1417") # Design specification deep charcoal
         
@@ -175,20 +183,37 @@ class PersonalAssistantApp(ctk.CTk):
         self.elapsed_time_secs = 0
         self.assistant_state = "Idle"
         
-        # 2. Build Components
+        # 2. Build Components (uses loaded self.assistant_name and self.active_voice)
         self.create_sidebar()
         self.create_main_panel()
         self.create_footer()
         
-        # 3. Core Voice Assistant Engine
-        self.assistant = SpeechToSpeechSystem(tts_method="gtts", voice_name="Jessica")
+        # 3. Core Voice Assistant Engine (dynamically set to match loaded settings)
+        tts_method = "pyttsx3"
+        voice_name = "Jessica"
+        if "gTTS" in self.active_voice:
+            tts_method = "gtts"
+        elif "ElevenLabs" in self.active_voice:
+            tts_method = "elevenlabs"
+            if "Lily" in self.active_voice:
+                voice_name = "Lily"
+            else:
+                voice_name = "Brian"
+        else:
+            tts_method = "pyttsx3"
+            voice_name = "Mark"
+        
+        self.assistant = SpeechToSpeechSystem(tts_method=tts_method, voice_name=voice_name)
         
         # 3. Start Telemetry and Timers
         self.update_telemetry()
         self.update_timer_loop()
         
+        # Restore conversation history logs from SQLite database on startup
+        self.load_history_log()
+        
         # Add welcome print to log console
-        self.append_log("LOQ", "System initialized and ready in Standby Mode.")
+        self.append_log(self.assistant_name, "System initialized and ready in Standby Mode.")
         self.append_log("System", "Select a voice model and press Start to initialize listening loop.")
 
     def create_sidebar(self):
@@ -216,8 +241,10 @@ class PersonalAssistantApp(ctk.CTk):
         name_label.pack(anchor="w", padx=15, pady=(5, 0))
         
         self.name_entry = ctk.CTkEntry(personalization_frame, placeholder_text="LOQ", fg_color="#0e1417", border_color="#3c494e", text_color="#dde3e7", height=32)
-        self.name_entry.insert(0, "LOQ")
+        self.name_entry.insert(0, self.assistant_name)
         self.name_entry.pack(fill="x", padx=15, pady=(2, 10))
+        self.name_entry.bind("<FocusOut>", self.save_name_setting)
+        self.name_entry.bind("<Return>", self.save_name_setting)
         
         # Voice Dropdown Selector
         voice_label = ctk.CTkLabel(personalization_frame, text="Active Voice (TTS):", font=ctk.CTkFont(family="Inter", size=12), text_color="#bbc9cf")
@@ -232,9 +259,10 @@ class PersonalAssistantApp(ctk.CTk):
             dropdown_fg_color="#161d1f",
             dropdown_hover_color="#242b2e",
             text_color="#dde3e7",
-            height=32
+            height=32,
+            command=self.save_voice_setting
         )
-        self.voice_dropdown.set("Jessica (gTTS)")
+        self.voice_dropdown.set(self.active_voice)
         self.voice_dropdown.pack(fill="x", padx=15, pady=(2, 15))
         
         # Group 2: Live Telemetry Dashboard
@@ -517,6 +545,47 @@ class PersonalAssistantApp(ctk.CTk):
             voice_name=voice_name
         )
 
+    def save_name_setting(self, event=None):
+        """Saves edited assistant name setting to the persistent database and updates variables."""
+        new_name = self.name_entry.get().strip()
+        if new_name:
+            self.db.set_setting("assistant_name", new_name)
+            self.assistant_name = new_name
+            self.title(f"{new_name} - Futuristic Personal Assistant")
+            log.info(f"Persisted new Assistant Name: '{new_name}'")
+
+    def save_voice_setting(self, selected_voice):
+        """Saves chosen TTS voice setting to the database and re-registers the engine parameters."""
+        self.db.set_setting("active_voice", selected_voice)
+        self.active_voice = selected_voice
+        log.info(f"Persisted Active Voice Selection: '{selected_voice}'")
+
+    def load_history_log(self):
+        """Loads and pre-populates previous conversation logs from SQLite database on boot."""
+        logs = self.db.get_history(limit=50)
+        if logs:
+            self.append_log("System", "--- Restoring Conversation History from Database ---")
+            for row in logs:
+                timestamp, user_text, response, command_executed, latency_ms = row
+                if user_text:
+                    self.append_log_with_time("User", f'"{user_text}"', timestamp)
+                if response:
+                    self.append_log_with_time(self.assistant_name, f'"{response}"', timestamp)
+                if command_executed:
+                    self.append_log_with_time("System", f"Command executed successfully: '{command_executed}' (Latency: {latency_ms:.1f}ms).", timestamp)
+            self.append_log("System", "--- End of Restored History ---")
+
+    def append_log_with_time(self, sender, message, timestamp):
+        """Helper to print custom timestamped logs cleanly inside the read-only textbox."""
+        # Slice only the time component 'HH:MM:SS' if it is a full SQLite timestamp
+        time_str = timestamp.split()[-1] if " " in timestamp else timestamp
+        log_entry = f"[{time_str}] {sender}: {message}\n"
+        
+        self.console_textbox.configure(state="normal")
+        self.console_textbox.insert("end", log_entry)
+        self.console_textbox.configure(state="disabled")
+        self.console_textbox.see("end")
+
     def on_cycle_finished(self, results):
         """Processes the Speech-to-Speech results back on the GUI main thread."""
         if not self.session_active or self.assistant_state == "Stopped":
@@ -525,9 +594,15 @@ class PersonalAssistantApp(ctk.CTk):
         user_text = results.get("user_text")
         response = results.get("response")
         command_executed = results.get("command_executed")
+        latency_ms = results.get("latency_ms", 0.0)
         
         # Fetch current assistant name dynamically from user setting
         current_name = self.name_entry.get().strip() or "LOQ"
+        
+        # Log voice interaction to SQLite database memory
+        self.db.log_interaction(user_text, response, command_executed, latency_ms)
+        if command_executed:
+            self.db.increment_command_usage(command_executed)
         
         if user_text:
             self.append_log("User", f'"{user_text}"')
@@ -536,7 +611,7 @@ class PersonalAssistantApp(ctk.CTk):
             self.append_log(current_name, f'"{response}"')
             
         if command_executed:
-            self.append_log("System", f"Command executed successfully: '{command_executed}'.")
+            self.append_log("System", f"Command executed successfully: '{command_executed}' (Latency: {latency_ms:.1f}ms).")
             
         # Shift status indicator to gold (Processing/Done) and then smoothly back to Green (Ready/Idle)
         self.change_ui_state("Processing", "SYSTEM STATUS: DONE", "#FFD700")
@@ -588,6 +663,9 @@ class PersonalAssistantApp(ctk.CTk):
         self.console_textbox.configure(state="normal")
         self.console_textbox.delete("1.0", "end")
         self.console_textbox.configure(state="disabled")
+        
+        # Wipe database history and usage frequency tables
+        self.db.clear_history()
         
         # Interrupt voice
         self.assistant.stop()
