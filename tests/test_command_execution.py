@@ -74,7 +74,7 @@ class CommandExecutor:
         text = text.replace("signout", "sign out")
         
         # 4. Remove conversational filler words
-        filler_words = {"please", "could", "you", "can", "to", "hey", "loq", "the", "a", "an", "now", "right", "want", "would", "like"}
+        filler_words = {"please", "could", "you", "can", "hey", "loq", "the", "a", "an", "now", "right", "want", "would", "like"}
         words = text.split()
         filtered_words = [w for w in words if w not in filler_words]
         

@@ -10,3 +10,4 @@ psutil
 pycaw
 pillow
 openwakeword
+screen-brightness-control

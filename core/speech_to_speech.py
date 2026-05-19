@@ -120,7 +120,7 @@ class SpeechToSpeechSystem:
         text = text.replace("signout", "sign out")
         
         # Filter out filler words
-        filler_words = {"please", "could", "you", "can", "to", "hey", "loq", "the", "a", "an", "now", "right", "want", "would", "like"}
+        filler_words = {"please", "could", "you", "can", "hey", "loq", "the", "a", "an", "now", "right", "want", "would", "like"}
         words = text.split()
         filtered_words = [w for w in words if w not in filler_words]
         
@@ -169,6 +169,10 @@ class SpeechToSpeechSystem:
         """
         if not shell_command:
             return False
+            
+        if shell_command.startswith("py:"):
+            success, _ = self.execute_python_command(shell_command)
+            return success
             
         # Check critical system commands safety
         if self.is_critical(matched_key) and not skip_safety:
@@ -228,22 +232,38 @@ class SpeechToSpeechSystem:
         matched_key, shell_command = self.match_command(user_input)
         
         if matched_key:
-            response = f"Executing command: {matched_key}."
-            log.info(f"Command execution match: '{matched_key}' -> '{shell_command}'")
-            
-            # Speak response first (or simultaneously)
-            self.tts.speak(response, method=tts_method, voice_name=voice_name)
-            
-            # Execute command asynchronously
-            self.execute_command(shell_command, matched_key, confirmation_callback)
-            
-            latency_ms = (time.perf_counter() - cycle_start) * 1000.0
-            return {
-                "user_text": user_input,
-                "response": response,
-                "command_executed": matched_key,
-                "latency_ms": latency_ms
-            }
+            if shell_command.startswith("py:"):
+                # Execute native control and get dynamic voice response
+                success, response = self.execute_python_command(shell_command)
+                log.info(f"Native command execution: '{matched_key}' -> '{shell_command}' -> Success: {success}, Resp: '{response}'")
+                
+                # Speak the dynamic outcome response
+                self.tts.speak(response, method=tts_method, voice_name=voice_name)
+                
+                latency_ms = (time.perf_counter() - cycle_start) * 1000.0
+                return {
+                    "user_text": user_input,
+                    "response": response,
+                    "command_executed": matched_key,
+                    "latency_ms": latency_ms
+                }
+            else:
+                response = f"Executing command: {matched_key}."
+                log.info(f"Command execution match: '{matched_key}' -> '{shell_command}'")
+                
+                # Speak response first (or simultaneously)
+                self.tts.speak(response, method=tts_method, voice_name=voice_name)
+                
+                # Execute command asynchronously
+                self.execute_command(shell_command, matched_key, confirmation_callback)
+                
+                latency_ms = (time.perf_counter() - cycle_start) * 1000.0
+                return {
+                    "user_text": user_input,
+                    "response": response,
+                    "command_executed": matched_key,
+                    "latency_ms": latency_ms
+                }
             
         # Step 3: Conversational fallback (Name matching or Echo)
         greeting = extract_name_and_greet(user_input)
@@ -294,6 +314,41 @@ class SpeechToSpeechSystem:
     def stop(self):
         """Instantly interrupts any ongoing speech playback."""
         self.tts.stop()
+
+    def execute_python_command(self, py_command):
+        """
+        Executes internal Python system control operations.
+        Format: 'py:<action>' or 'py:<action>:<param>'
+        Returns a tuple (success: bool, message: str)
+        """
+        try:
+            from core.automation import SystemController
+            parts = py_command.split(":")
+            action = parts[1]
+            
+            if action == "volume_up":
+                return True, SystemController.change_volume(10)
+            elif action == "volume_down":
+                return True, SystemController.change_volume(-10)
+            elif action == "mute":
+                return True, SystemController.set_mute(True)
+            elif action == "unmute":
+                return True, SystemController.set_mute(False)
+            elif action == "brightness_up":
+                return True, SystemController.change_brightness(10)
+            elif action == "brightness_down":
+                return True, SystemController.change_brightness(-10)
+            elif action == "set_volume":
+                param = int(parts[2])
+                return True, SystemController.set_volume(param)
+            elif action == "set_brightness":
+                param = int(parts[2])
+                return True, SystemController.set_brightness(param)
+            else:
+                return False, f"Unknown native system control action: {action}"
+        except Exception as e:
+            log.error(f"Error executing native system control: {e}")
+            return False, f"Failed to execute system control: {e}"
 
 
 # Self-test block
