@@ -19,6 +19,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from core.speech_to_speech import SpeechToSpeechSystem
+from core.wakeword import WakeWordEngine
 from utils.database import AssistantMemory
 from utils.logger import logging as log
 # Fallback for CPU/RAM status monitoring if psutil isn't in virtualenv
@@ -211,10 +212,22 @@ class PersonalAssistantApp(ctk.CTk):
         
         # Restore conversation history logs from SQLite database on startup
         self.load_history_log()
+
+        # 4. Initialize and start Wake Word Engine Background Thread
+        self.ww_stop_event = threading.Event()
+        self.ww_pause_event = threading.Event()
+        self.ww_pause_event.clear()  # Initially not paused
+        self.wakeword_engine = WakeWordEngine(wake_word="hey_jarvis")
+        self.ww_thread = threading.Thread(
+            target=self.wakeword_engine.listen, 
+            args=(self.on_wakeword_detected, self.ww_stop_event, self.ww_pause_event), 
+            daemon=True
+        )
+        self.ww_thread.start()
         
         # Add welcome print to log console
         self.append_log(self.assistant_name, "System initialized and ready in Standby Mode.")
-        self.append_log("System", "Select a voice model and press Start to initialize listening loop.")
+        self.append_log("System", "Select a voice model and press Start to initialize listening loop, or say 'hey jarvis' to wake me.")
 
     def create_sidebar(self):
         """Creates the styled personalization and telemetry side panel."""
@@ -624,12 +637,20 @@ class PersonalAssistantApp(ctk.CTk):
                 
         self.after(800, reset_to_idle)
 
+    def on_wakeword_detected(self):
+        """Callback triggered by the background WakeWordEngine."""
+        # Ensure we call start_action on the main thread to update UI correctly
+        self.after(0, self.start_action)
+
     def start_action(self):
         """Activates the continuous, hands-free voice command execution loop."""
         if not self.session_active:
             self.session_active = True
             self.start_time = time.time()
             self.append_log("System", "Assistant session started.")
+            
+        # Pause the wake word listener to prevent it from interfering with main STT mic stream
+        self.ww_pause_event.set()
             
         # Clear stopped state and trigger first listening cycle
         self.change_ui_state("Listening", "SYSTEM STATUS: LISTENING...", "#00D4FF")
@@ -649,6 +670,9 @@ class PersonalAssistantApp(ctk.CTk):
         
         # Instantly interrupt any active audio stream
         self.assistant.stop()
+        
+        # Resume the wake word listener so it can start the loop again when called
+        self.ww_pause_event.clear()
         
         # Reset button styles
         self.start_btn.configure(fg_color="#00586B", text_color="#A8E8FF")
@@ -670,6 +694,9 @@ class PersonalAssistantApp(ctk.CTk):
         # Interrupt voice
         self.assistant.stop()
         
+        # Resume the wake word listener
+        self.ww_pause_event.clear()
+        
         # Shift back to Ready
         self.change_ui_state("Idle", "SYSTEM STATUS: READY", "#2ECC71")
         self.append_log("System", "Logs cleared. Assistant reset to Standby Ready.")
@@ -677,6 +704,10 @@ class PersonalAssistantApp(ctk.CTk):
         # Reset buttons styles
         self.start_btn.configure(fg_color="#00586B", text_color="#A8E8FF")
 
+    def destroy(self):
+        """Cleanup before closing app."""
+        self.ww_stop_event.set()
+        super().destroy()
 
 if __name__ == "__main__":
     app = PersonalAssistantApp()
