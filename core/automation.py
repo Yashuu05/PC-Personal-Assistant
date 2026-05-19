@@ -97,3 +97,75 @@ class SystemController:
         except Exception as e:
             log.error(f"Failed to change brightness: {e}")
             return f"Error changing brightness: {e}"
+
+class DesktopAutomation:
+    """
+    Handles high-fidelity desktop navigation and interactions
+    using PyAutoGUI (scrolling, clicking, hotkeys, screenshots).
+    """
+    
+    @staticmethod
+    def scroll(direction, amount=500):
+        """Scrolls the active window."""
+        import pyautogui
+        try:
+            if direction.lower() == "down":
+                pyautogui.scroll(-amount)
+                log.info("Scrolled active window down.")
+                return "Scrolled down."
+            elif direction.lower() == "up":
+                pyautogui.scroll(amount)
+                log.info("Scrolled active window up.")
+                return "Scrolled up."
+            return f"Invalid scroll direction: {direction}"
+        except Exception as e:
+            log.error(f"Failed to scroll: {e}")
+            return f"Failed to scroll: {e}"
+
+    @staticmethod
+    def trigger_hotkey(*keys):
+        """Sends key combinations (e.g. 'ctrl', 't')."""
+        import pyautogui
+        try:
+            pyautogui.hotkey(*keys)
+            log.info(f"Triggered hotkey shortcut: {keys}")
+            return f"Triggered {', '.join(keys)}."
+        except Exception as e:
+            log.error(f"Hotkey execution failed: {e}")
+            return f"Hotkey execution failed: {e}"
+
+    @staticmethod
+    def press_key(key):
+        """Presses a single key."""
+        import pyautogui
+        try:
+            pyautogui.press(key)
+            log.info(f"Pressed key: {key}")
+            return f"Pressed {key}."
+        except Exception as e:
+            log.error(f"Key press failed: {e}")
+            return f"Key press failed: {e}"
+
+    @staticmethod
+    def take_screenshot(filename=None):
+        """Takes a screenshot and saves it to the specified OneDrive folder."""
+        import pyautogui
+        import os
+        from datetime import datetime
+        
+        try:
+            screenshot_dir = r"C:\Users\chill\OneDrive\Pictures\Screenshots"
+            os.makedirs(screenshot_dir, exist_ok=True)
+            
+            if not filename:
+                timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                filename = f"LOQ_Screenshot_{timestamp}.png"
+                
+            filepath = os.path.join(screenshot_dir, filename)
+            pyautogui.screenshot(filepath)
+            log.info(f"Screenshot saved silently to: {filepath}")
+            return "Screenshot saved successfully."
+        except Exception as e:
+            log.error(f"Screenshot failed: {e}")
+            return f"Screenshot failed: {e}"
+

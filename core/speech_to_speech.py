@@ -322,7 +322,7 @@ class SpeechToSpeechSystem:
         Returns a tuple (success: bool, message: str)
         """
         try:
-            from core.automation import SystemController
+            from core.automation import SystemController, DesktopAutomation
             parts = py_command.split(":")
             action = parts[1]
             
@@ -344,6 +344,17 @@ class SpeechToSpeechSystem:
             elif action == "set_brightness":
                 param = int(parts[2])
                 return True, SystemController.set_brightness(param)
+            elif action == "scroll":
+                direction = parts[2]
+                return True, DesktopAutomation.scroll(direction)
+            elif action == "hotkey":
+                keys = parts[2:]
+                return True, DesktopAutomation.trigger_hotkey(*keys)
+            elif action == "press":
+                key = parts[2]
+                return True, DesktopAutomation.press_key(key)
+            elif action == "screenshot":
+                return True, DesktopAutomation.take_screenshot()
             else:
                 return False, f"Unknown native system control action: {action}"
         except Exception as e:

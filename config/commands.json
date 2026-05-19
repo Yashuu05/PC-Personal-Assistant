@@ -80,9 +80,21 @@
   "clear temp files": "del /q/f/s %TEMP%\\*",
   "empty recycle bin": "PowerShell.exe -NoProfile -Command Clear-RecycleBin -Force",
 
-  "take screenshot": "snippingtool",
+  "take screenshot": "py:screenshot",
   "open camera": "start microsoft.windows.camera:",
   "open photos": "start ms-photos:",
+
+  "scroll down": "py:scroll:down",
+  "scroll up": "py:scroll:up",
+  "press enter": "py:press:enter",
+  "press space": "py:press:space",
+  "press escape": "py:press:esc",
+  "go back": "py:press:browserback",
+  "go forward": "py:press:browserforward",
+  "new tab": "py:hotkey:ctrl:t",
+  "close tab": "py:hotkey:ctrl:w",
+  "copy text": "py:hotkey:ctrl:c",
+  "paste text": "py:hotkey:ctrl:v",
 
   "check battery": "powercfg /batteryreport",
   "system information": "msinfo32",

@@ -11,3 +11,4 @@ pycaw
 pillow
 openwakeword
 screen-brightness-control
+pyautogui
