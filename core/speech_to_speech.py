@@ -84,7 +84,8 @@ class SpeechToSpeechSystem:
                 return False
                 
             with open(self.commands_path, "r") as f:
-                self.commands = json.load(f)
+                loaded_commands = json.load(f)
+                self.commands = {k.lower(): v for k, v in loaded_commands.items()}
                 
             log.info(f"Loaded {len(self.commands)} system commands from config.")
             

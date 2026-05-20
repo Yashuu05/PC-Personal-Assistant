@@ -6,4 +6,5 @@
 |   3.   |  STT                             |  passed    |
 |   4.   |  Speech-to-Speech Integration    |  passed    |
 |   5.   |  Database Integration            |  passed    |
+|   6.   |  Wake Word Detection             |     |
 +--------+----------------------------------+------------+

@@ -5,7 +5,7 @@ from openwakeword.model import Model
 from utils.logger import logging as log
 
 class WakeWordEngine:
-    def __init__(self, wake_word="hey_jarvis", confidence_threshold=0.6):
+    def __init__(self, wake_word="hey jarvis", confidence_threshold=0.3):
         self.wake_word = wake_word
         self.confidence_threshold = confidence_threshold
         try:
