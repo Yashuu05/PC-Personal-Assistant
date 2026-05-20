@@ -12,3 +12,4 @@ pillow
 openwakeword
 screen-brightness-control
 pyautogui
+pyinstaller
