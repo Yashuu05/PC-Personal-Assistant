@@ -174,6 +174,17 @@ def get_voice_id_by_name(voice_name):
     return None
 
 
+def check_wifi(host="8.8.8.8", port=53, timeout=2):
+    """Checks for active internet connection via socket."""
+    try:
+        import socket
+        socket.create_connection((host, port), timeout=timeout)
+        return True
+    except OSError:
+        pass
+    return False
+
+
 # ----------------- Unified CustomTkinter-Ready Controller Class -----------------
 
 class TTSEngine:
@@ -196,6 +207,11 @@ class TTSEngine:
         method = method.lower()
         
         log.info(f"TTS requested: '{text}' [Method: {method}]")
+
+        # Fallback if no WiFi is detected for cloud-based methods
+        if method in ["elevenlabs", "gtts"] and not check_wifi():
+            log.warning("No WiFi detected. Falling back to offline Pyttsx3.")
+            method = "pyttsx3"
 
         if method == "elevenlabs":
             voice_id = get_voice_id_by_name(voice_name)

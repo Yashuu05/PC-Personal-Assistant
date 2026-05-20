@@ -13,3 +13,4 @@ openwakeword
 screen-brightness-control
 pyautogui
 pyinstaller
+pystray

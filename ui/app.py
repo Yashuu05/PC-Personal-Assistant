@@ -194,15 +194,20 @@ class PersonalAssistantApp(ctk.CTk):
         voice_name = "Jessica"
         if "gTTS" in self.active_voice:
             tts_method = "gtts"
+            voice_name = "gTTS"
         elif "ElevenLabs" in self.active_voice:
             tts_method = "elevenlabs"
             if "Lily" in self.active_voice:
                 voice_name = "Lily"
-            else:
+            elif "Brian" in self.active_voice:
                 voice_name = "Brian"
+            elif "Mark" in self.active_voice:
+                voice_name = "Mark"
+            else:
+                voice_name = "Jessica"
         else:
             tts_method = "pyttsx3"
-            voice_name = "Mark"
+            voice_name = "pyttsx3"
         
         self.assistant = SpeechToSpeechSystem(tts_method=tts_method, voice_name=voice_name)
         
@@ -265,7 +270,7 @@ class PersonalAssistantApp(ctk.CTk):
         
         self.voice_dropdown = ctk.CTkOptionMenu(
             personalization_frame, 
-            values=["Jessica (gTTS)", "Lily (ElevenLabs)", "Brian (ElevenLabs)", "Mark (pyttsx3)"],
+            values=["Jessica (ElevenLabs)", "Lily (ElevenLabs)", "Brian (ElevenLabs)", "Mark (ElevenLabs)", "pyttsx3", "gTTS"],
             fg_color="#0e1417",
             button_color="#242b2e",
             button_hover_color="#333a3d",
@@ -540,15 +545,20 @@ class PersonalAssistantApp(ctk.CTk):
         
         if "gTTS" in voice_selection:
             tts_method = "gtts"
+            voice_name = "gTTS"
         elif "ElevenLabs" in voice_selection:
             tts_method = "elevenlabs"
             if "Lily" in voice_selection:
                 voice_name = "Lily"
-            else:
+            elif "Brian" in voice_selection:
                 voice_name = "Brian"
+            elif "Mark" in voice_selection:
+                voice_name = "Mark"
+            else:
+                voice_name = "Jessica"
         else:
             tts_method = "pyttsx3"
-            voice_name = "Mark"
+            voice_name = "pyttsx3"
             
         # Dispatch to background daemon thread to keep CustomTkinter completely fluid
         self.assistant.run_cycle_async(
