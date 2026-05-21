@@ -128,6 +128,18 @@ class SpeechToSpeechSystem:
         cleaned = " ".join(filtered_words)
         return cleaned
 
+    def check_stop_word(self, text):
+        """
+        Custom function which listens to the users's voice as 'stop' or 'wait'
+        and returns True if a stop command is detected.
+        """
+        if not text:
+            return False
+        cleaned = self.clean_input(text)
+        if cleaned in ["stop", "wait", "stop listening", "pause"]:
+            return True
+        return False
+
     def match_command(self, user_input):
         """
         Performs high-performance command matching.
@@ -226,6 +238,19 @@ class SpeechToSpeechSystem:
                 "user_text": None,
                 "response": response,
                 "command_executed": None,
+                "latency_ms": latency_ms
+            }
+
+        # Step 1.5: Custom function check for stop words
+        if self.check_stop_word(user_input):
+            log.info("Stop word detected in voice input.")
+            response = "Stopping listening."
+            self.tts.speak(response, method=tts_method, voice_name=voice_name)
+            latency_ms = (time.perf_counter() - cycle_start) * 1000.0
+            return {
+                "user_text": user_input,
+                "response": response,
+                "command_executed": "stop_loop",
                 "latency_ms": latency_ms
             }
             

@@ -62,6 +62,8 @@ class LOQVisualizer(ctk.CTkCanvas):
             self.amplitude = 15.0
 
     def animate(self):
+        if not self.winfo_exists():
+            return
         self.delete("all")
         width = self.winfo_width()
         height = self.winfo_height()
@@ -122,6 +124,8 @@ class GlowingStatusLED(ctk.CTkCanvas):
         self.state = state
 
     def animate(self):
+        if not self.winfo_exists():
+            return
         self.delete("all")
         self.pulse += 0.1
         
@@ -444,6 +448,8 @@ class PersonalAssistantApp(ctk.CTk):
 
     def update_telemetry(self):
         """Gathers system CPU, RAM, and Battery states dynamically in background."""
+        if not self.winfo_exists():
+            return
         # 1. Update CPU telemetry
         cpu_val = 0.0
         if psutil:
@@ -495,6 +501,8 @@ class PersonalAssistantApp(ctk.CTk):
 
     def update_timer_loop(self):
         """Updates the session clock every second if listening is active."""
+        if not self.winfo_exists():
+            return
         if self.session_active:
             self.elapsed_time_secs = int(time.time() - self.start_time)
             
@@ -624,6 +632,12 @@ class PersonalAssistantApp(ctk.CTk):
         response = results.get("response")
         command_executed = results.get("command_executed")
         latency_ms = results.get("latency_ms", 0.0)
+
+        # Handle custom stop command via voice
+        if command_executed == "stop_loop":
+            self.append_log("System", "Voice loop paused via voice command.")
+            self.after(0, self.stop_action)
+            return
         
         # Fetch current assistant name dynamically from user setting
         current_name = self.name_entry.get().strip() or "LOQ"
@@ -655,6 +669,15 @@ class PersonalAssistantApp(ctk.CTk):
 
     def on_wakeword_detected(self):
         """Callback triggered by the background WakeWordEngine."""
+        # Use pyttsx3 to provide 'Listening...' feedback to the user
+        try:
+            import pyttsx3
+            engine = pyttsx3.init()
+            engine.say("Listening...")
+            engine.runAndWait()
+        except Exception as e:
+            log.error(f"Failed to play 'Listening' TTS: {e}")
+            
         # Ensure we call start_action on the main thread to update UI correctly
         self.after(0, self.start_action)
 
@@ -731,7 +754,7 @@ class PersonalAssistantApp(ctk.CTk):
         )
         
         # Load small icon asset
-        icon_path = os.path.join(project_root, "ui", "assets", "logo_icon.ico")
+        icon_path = os.path.join(project_root, "ui", "assets", "icon_logo.png")
         if os.path.exists(icon_path):
             image = Image.open(icon_path)
         else:
@@ -758,6 +781,10 @@ class PersonalAssistantApp(ctk.CTk):
         if hasattr(self, 'tray_icon') and self.tray_icon:
             self.tray_icon.stop()
         self.ww_stop_event.set()
+        try:
+            self.quit()
+        except Exception:
+            pass
         super().destroy()
 
 if __name__ == "__main__":
