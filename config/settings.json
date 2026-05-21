@@ -10,5 +10,7 @@
         {"Lily" : "pFZP5JQG7iQjIQuC4Bku"},
         {"Mark" : "UgBBYS2sOqTuMpoF3BR0"},
         {"Jessica" : "cgSgspJ2msm6clMCkdW9"}
-    ]
+    ],
+    "openwakeword keyword" : "hey jarvis",
+    "openwakeword confidence score" : 0.40
 }
