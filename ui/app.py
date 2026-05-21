@@ -12,6 +12,8 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
+import pystray
+from PIL import Image
 
 # Add project root to sys.path to ensure absolute imports work correctly
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -173,6 +175,10 @@ class PersonalAssistantApp(ctk.CTk):
         self.title(f"{self.assistant_name} - Futuristic Personal Assistant")
         self.geometry("850x650")
         self.configure(fg_color="#0e1417") # Design specification deep charcoal
+        
+        # Override standard closing protocol to minimize to system tray instead
+        self.protocol('WM_DELETE_WINDOW', self.minimize_to_tray)
+        self.tray_icon = None
         
         self.grid_columnconfigure(0, weight=0, minsize=280) # Sidebar
         self.grid_columnconfigure(1, weight=1)              # Main Panel
@@ -714,8 +720,43 @@ class PersonalAssistantApp(ctk.CTk):
         # Reset buttons styles
         self.start_btn.configure(fg_color="#00586B", text_color="#A8E8FF")
 
+    def minimize_to_tray(self):
+        """Hides the CustomTkinter GUI window and minimizes to system tray."""
+        self.withdraw()
+        
+        # Create tray menu
+        menu = (
+            pystray.MenuItem('Restore LOQ', self.restore_from_tray, default=True),
+            pystray.MenuItem('Exit completely', self.exit_app)
+        )
+        
+        # Load small icon asset
+        icon_path = os.path.join(project_root, "ui", "assets", "logo_icon.ico")
+        if os.path.exists(icon_path):
+            image = Image.open(icon_path)
+        else:
+            image = Image.new('RGB', (64, 64), color=(0, 212, 255))
+            
+        self.tray_icon = pystray.Icon("LOQ", image, "LOQ Assistant", menu)
+        # Run tray loop in dedicated background thread
+        threading.Thread(target=self.tray_icon.run, daemon=True).start()
+
+    def restore_from_tray(self, icon, item):
+        """Restores the CustomTkinter GUI window from the system tray."""
+        if self.tray_icon:
+            self.tray_icon.stop()
+        self.deiconify()
+
+    def exit_app(self, icon, item):
+        """Completely exits the application from the system tray."""
+        if self.tray_icon:
+            self.tray_icon.stop()
+        self.destroy()
+
     def destroy(self):
         """Cleanup before closing app."""
+        if hasattr(self, 'tray_icon') and self.tray_icon:
+            self.tray_icon.stop()
         self.ww_stop_event.set()
         super().destroy()
 
