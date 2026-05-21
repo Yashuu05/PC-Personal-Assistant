@@ -8,4 +8,5 @@
 |   5.   |  Database Integration            |  passed    |
 |   6.   |  Wake Word Detection             |  passed    |
 |   7.   |  TTS Fallback mechanism          |  passed    | 
+|   8.   |  Stop/Pause Command              |  passed    | 
 +--------+----------------------------------+------------+
