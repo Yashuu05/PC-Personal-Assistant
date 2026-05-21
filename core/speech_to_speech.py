@@ -132,12 +132,17 @@ class SpeechToSpeechSystem:
         """
         Custom function which listens to the users's voice as 'stop' or 'wait'
         and returns True if a stop command is detected.
+        Uses regex matching similar to the command execution logic.
         """
         if not text:
             return False
         cleaned = self.clean_input(text)
-        if cleaned in ["stop", "wait", "stop listening", "pause"]:
+        
+        stop_keywords = ["stop", "wait", "pause", "stop listening"]
+        pattern = r"\b(" + "|".join(re.escape(k) for k in stop_keywords) + r")\b"
+        if re.search(pattern, cleaned, re.IGNORECASE):
             return True
+            
         return False
 
     def match_command(self, user_input):
